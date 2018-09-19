@@ -1,0 +1,32 @@
+[version]
+   signature="$CHICAGO$"
+   AdvancedINF=2.0
+
+[Setup Hooks]
+   hook1=hook1 
+
+[hook1]
+
+
+[Add.Code]
+   xdworldv4.ocx=xdworldv4.ocx
+   xdnetworkv4.dll=xdnetworkv4.dll
+   ijl11.dll=ijl11.dll
+
+[xdworldv4.ocx]
+   file-win32-x86=thiscab
+   clsid={FFEF80F2-03D0-4F77-BB42-4D3CD0F3C9CB}
+   FileVersion=4,0,0,27
+   RegisterServer=yes
+
+[xdnetworkv4.dll]
+   file-win32-x86=thiscab
+   FileVersion=1,0,0,18
+   RegisterServer=yes
+
+[ijl11.dll]
+  file-win32-x86=thiscab
+   FileVersion=1,1,2,16
+   destdir=11
+   RegisterServer=yes
+

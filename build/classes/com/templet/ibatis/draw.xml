@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="draw">
+	<typeAlias alias="DrawBoardVo" type="com.templet.vo.DrawBoardVo"/>
+	
+	<insert id="writeObject" parameterClass="DrawBoardVo">
+		insert into TestBoard(idx, name, writeDate)
+			values(TestBoardSEQ.nextVal, #writer#, sysdate)
+	</insert>	
+
+</sqlMap>
+
+
+
+
+
+
+

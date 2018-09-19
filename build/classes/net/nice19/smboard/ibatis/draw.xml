@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+    
+<sqlMap namespace="draw">
+	<typeAlias alias="DrawBoardVo" type="com.templet.vo.DrawBoardVo" />
+	<typeAlias alias="EmbVo" type="com.templet.vo.EmbVo" />
+	<typeAlias alias="JibunVo" type="com.templet.vo.JibunVo" />
+	<typeAlias alias="LayerVo" type="com.templet.vo.LayerVo" />
+	<typeAlias alias="BliudVo" type="com.templet.vo.BliudVo" />
+	<typeAlias alias="CctvVo" type="com.templet.vo.CctvVo" />
+	
+	
+	<insert id="writeObject" parameterClass="DrawBoardVo">
+		INSERT INTO SW_DROW_DATA
+           (NAME
+           ,objectFileName
+           ,writeDate
+           ,modiDate
+           ,CheckID
+           ,writeName
+           ,modiName)
+    		 VALUES	(#name#, #objectFileName#, GETDATE(), GETDATE(), 'Y', #writeName#, #modiName#)
+	</insert>
+	<select id="embSearch" resultClass="EmbVo">
+		select EMD_CD, EMD_NM from LP_AA_EMD WHERE EMD_CD like #name#+'%'
+	</select>
+	
+	<select id="jibunSearchList" parameterClass="java.util.HashMap" resultClass="JibunVo">
+		
+		SELECT JIBUN, X_POINT, Y_POINT, PNU, EMD_NM, SGG_NM, rownum  FROM(
+		SELECT ROW_NUMBER()OVER(order by JIBUN ASC)rownum, cmbd.JIBUN, cmbd.X_POINT, cmbd.Y_POINT, cmbd.PNU, emd.EMD_NM, sgg.SGG_NM FROM
+		(SELECT JIBUN, X_POINT, Y_POINT, PNU FROM  LP_PA_CBND WHERE PNU LIKE #pnuCode#+'%')cmbd, 
+		(SELECT SGG_CD, SGG_NM FROM LP_AA_SGG)sgg,
+		(SELECT EMD_CD, EMD_NM FROM LP_AA_EMD)emd
+		WHERE SUBSTRING(cmbd.PNU, 1, 5) =  sgg.SGG_CD AND SUBSTRING(cmbd.PNU, 1, 8) =  emd.EMD_CD)t
+		WHERE t.rownum BETWEEN #startArticleNum# and #endArticleNum# 
+	</select>	
+	<select id="jibunTotalNum" resultClass="int">
+		select 
+			count(PNU)
+		from LP_PA_CBND WHERE PNU LIKE #pnuCode#+'%'
+	</select>
+	
+	<select id="objectSearchList" parameterClass="java.util.HashMap" resultClass="DrawBoardVo">
+		
+		SELECT  id, name, objectFileName, writeDate, modiDate, writeName, modiName from 
+		((SELECT ROW_NUMBER()OVER(order by modiDate ASC)rownus, id, name, 
+		objectFileName, writeDate, modiDate, writeName, modiName 
+		FROM  SW_DROW_DATA Where cast(CONVERT(char, modiDate, 112) as int) <![CDATA[>=]]> #startDate#
+		and  cast(CONVERT(char, modiDate, 112) as int) <![CDATA[<=]]> #endDate#))t WHERE rownus BETWEEN #startArticleNum# and #endArticleNum# 
+		
+	</select>	
+	<select id="objectTotalNum" resultClass="int">
+		SELECT COUNT(id)
+		FROM  SW_DROW_DATA Where cast(CONVERT( varchar, modiDate, 112) as int) <![CDATA[>=]]> #startDate#
+		and  cast(CONVERT(varchar, modiDate, 112 ) as int) <![CDATA[<=]]> #endDate#
+	</select>	
+	
+	<select id="layerList" resultClass="LayerVo">
+		select gru_eng,gru_kor,lay_eng,lay_kor,laytype,keycode,r_color,g_color,b_color from LP_AA_LAYER
+	</select>	
+	<select id="classSearch" resultClass="BliudVo">
+		select distinct kind_m from LP_AA_BUILD WHERE BUILD_ID like #name#+'%'
+	</select>	
+	<select id="buildSearchList" parameterClass="java.util.HashMap" resultClass="BliudVo">
+		SELECT innb,POINT_X, POINT_Y, TRNM_NM, EMD_NM, SGG_NM, jibun, rownum  FROM(
+		SELECT ROW_NUMBER()OVER(order by TRNM_NM ASC)rownum,  cmbd.innb, cmbd.POINT_X, cmbd.POINT_Y, cmbd.TRNM_NM, emd.EMD_NM, sgg.SGG_NM, ji.jibun FROM
+		(select INNB, TRNM_NM, POINT_X, POINT_Y from LP_AA_BUILD 
+		WHERE innb like #embNm#+'%'  and TRNM_NM like '%'+#buildSearch#+'%' and 
+		BUILD_ID like #classnew#+'%' and KIND_M like #classnow#+'%')cmbd,
+		(SELECT SGG_CD, SGG_NM FROM LP_AA_SGG)sgg, 
+		(SELECT EMD_CD, EMD_NM FROM LP_AA_EMD)emd,
+		(SELECT jibun, pnu FROM LP_PA_CBND)ji
+		WHERE SUBSTRING(cmbd.innb, 1, 5) =  sgg.SGG_CD AND SUBSTRING(cmbd.innb, 1, 8) =  emd.EMD_CD and cmbd.innb = ji.pnu)t
+		WHERE t.rownum BETWEEN #startArticleNum# and #endArticleNum#
+	</select>
+	
+	<select id="buildTotalNum" resultClass="int">
+		select count(TRNM_NM) from LP_AA_BUILD
+		where INNB like #embNm#+'%'  and TRNM_NM like '%'+#buildSearch#+'%' and 
+		BUILD_ID like #classnew#+'%' and KIND_M like #classnow#+'%'  
+
+	</select>
+	<select id="cctvSearchList" parameterClass="java.util.HashMap" resultClass="CctvVo">
+	
+			SELECT rownum, ADDR, X_POINT, Y_POINT  FROM(
+		select ROW_NUMBER()OVER(order by ADDR ASC)rownum, ADDR, X_POINT, Y_POINT 
+		from LP_AA_CCTV where ADDR like '%'+#addrName#+'%' and EMD_CD like #embNm#+'%')t
+		where t.rownum BETWEEN #startArticleNum# and #endArticleNum#
+	
+	</select>
+	<select id="cctvTotalNum" resultClass="int">
+		select COUNT(EMD_CD) from LP_AA_CCTV where ADDR like '%'+#addrName#+'%' and EMD_CD like #embNm#+'%'
+	</select>
+	<select id="layergroup" resultClass="LayerVo">
+		select
+		    distinct gru_eng, gru_kor
+		from LP_AA_LAYER
+		where gru_eng is not null
+        order by gru_eng
+		
+	</select>		
+	
+</sqlMap>
+
+
+
+
+
+
+
